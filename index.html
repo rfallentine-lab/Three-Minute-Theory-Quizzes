@@ -1,7 +1,1876 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Music Study Studio</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#18233b;background:#f2f5fc}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(120deg,#343d91,#7152bd);color:white;padding:30px max(22px,calc((100vw - 980px)/2))}h1{margin:0;font-size:clamp(26px,4vw,39px)}header p{opacity:.92;margin:8px 0 0}.wrap{max-width:980px;margin:auto;padding:24px 18px 60px}.toolbar,.stats,.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.toolbar{margin-bottom:18px}button,select{font:inherit;border-radius:12px;border:1px solid #d5dbea;padding:12px 16px;background:white;color:#242e53;cursor:pointer}button:hover{border-color:#6453b6}button:focus-visible,select:focus-visible{outline:3px solid #f6b74c}button.active,.primary{background:#493ba2;color:white;border-color:#493ba2}select{max-width:100%}.stats{justify-content:space-between;margin:16px 0;color:#465274;font-size:14px}.track{height:10px;background:#dce1ee;border-radius:99px;overflow:hidden;margin-bottom:20px}.fill{height:100%;width:0;background:#38a883;transition:width .2s}.card{border:0;background:white;box-shadow:0 12px 38px #202b5b17;border-radius:22px;min-height:280px;padding:35px;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;width:100%;font-size:clamp(23px,3.3vw,34px);font-weight:700;line-height:1.3}.card small{font-size:13px;font-weight:500;color:#687491;margin-bottom:22px}.card.answer{background:#e8fff5;color:#17664d}.actions{justify-content:center;margin-top:20px}.choicegrid{display:grid;gap:12px;margin:18px auto;max-width:680px}.choice{text-align:left;padding:16px}.choice.correct{background:#d7f6e4;border-color:#2a9464}.choice.wrong{background:#ffe1e1;border-color:#c75c5c}.feedback{min-height:26px;text-align:center;font-weight:700;margin:14px}footer{font-size:13px;color:#63708a;margin-top:35px;line-height:1.5}.muted{color:#65708a}#empty{display:none;text-align:center;padding:60px 15px;background:white;border-radius:20px}@media(max-width:520px){header{padding:25px 20px}.card{min-height:260px;padding:25px}.toolbar>*{flex:1 1 auto}}
-</style></head><body><header><h1>🎵 Music Study Studio</h1><p>Flashcards + multiple-choice practice • Study at your own pace</p></header><main class="wrap"><div class="toolbar"><label for="category">Topic</label><select id="category"></select><button id="flash" class="active">🃏 Flashcards</button><button id="quiz">📝 Multiple choice</button></div><div class="toolbar"><button id="shuffle">🔀 Shuffle</button><button id="missed">Practice still learning</button><button id="reset">Reset this topic</button></div><div class="stats"><span id="count"></span><span id="progress"></span></div><div class="track"><div id="fill" class="fill"></div></div><section id="study"><button id="card" class="card" aria-label="Flip flashcard"><small id="cardhint">QUESTION • Tap to flip</small><span id="cardtext"></span></button><div id="choices" class="choicegrid" hidden></div><div id="feedback" class="feedback" aria-live="polite"></div><div class="actions"><button id="prev">← Previous</button><button id="again">✕ Still learning</button><button id="know" class="primary">✓ Know it</button><button id="next">Next →</button></div></section><section id="empty"><h2>Nice work! 🎉</h2><p>No cards match this filter. Switch back to all cards to keep studying.</p><button id="all">Show all cards</button></section><footer>Adapted for study from the supplied ThreeMinuteTheory.com quizzes. Questions are adapted from the provided quizzes; repeated questions are omitted in this full study set. Progress is saved only in this browser on this device; it is not submitted to your teacher or Canvas. No login required.</footer></main><script>
-const CARDS=[{"category": "Music Literacy", "q": "What is the next letter of the musical alphabet that is higher than the note A?", "a": "B", "options": ["G", "B", "F"]}, {"category": "Music Literacy", "q": "How many lines make up one musical staff?", "a": "5", "options": ["4", "5", "6"]}, {"category": "Music Literacy", "q": "What is another name for the bass clef?", "a": "F Clef", "options": ["G Clef", "F Clef", "Treble Clef"]}, {"category": "Music Literacy", "q": "Which clef is usually used for higher pitched voices and instruments?", "a": "Treble Clef", "options": ["Treble Clef", "Bass Clef", "Alto Clef"]}, {"category": "Music Literacy", "q": "True or false, a group of musical parts is called a measure.", "a": "False", "options": ["True", "False"]}, {"category": "Music Literacy", "q": "True or false, a measure is the space between two staff lines.", "a": "False", "options": ["True", "False"]}, {"category": "Music Literacy", "q": "True or false, a musical system is a group of all the instruments or voices in a piece of music.", "a": "True", "options": ["True", "False"]}, {"category": "Music Literacy", "q": "What does the top number of a time signature tell us?", "a": "Beats Per Measure – Beats Per Line", "options": ["Beats Per Measure – Beats Per Line", "The type of note that receives one beat"]}, {"category": "Music Literacy", "q": "How many beats per measure do we have in 6-8 time?", "a": "6", "options": ["6", "7", "8"]}, {"category": "Music Literacy", "q": "True or false, the bottom number of a time signature tells us how many measures fit in one line.", "a": "False", "options": ["True", "False"]}, {"category": "Music Literacy", "q": "What is the correct order of treble clef lines, bottom line to top line?", "a": "E, G, B, D, F", "options": ["E, G, B, D, F", "E, B, G, D, F", "G, B, D, F, A"]}, {"category": "Music Literacy", "q": "What is another name for the treble clef?", "a": "G Clef", "options": ["F Clef", "Bass Clef", "G Clef"]}, {"category": "Music Literacy", "q": "What pitch is lower than E?", "a": "D", "options": ["F", "D", "G"]}, {"category": "Music Literacy", "q": "What are the bass clef line notes from bottom to top?", "a": "G, B, D, F, A", "options": []}, {"category": "Music Literacy", "q": "In the original note-reading example #15, what was the correct pitch?", "a": "E", "options": []}, {"category": "Music Literacy", "q": "In the original note-reading example #16, what was the correct pitch?", "a": "F", "options": []}, {"category": "Music Literacy", "q": "What does the sharp symbol (♯) look like?", "a": "♯; it raises a note by a half step", "options": []}, {"category": "Music Literacy", "q": "How does a flat sign change a note?", "a": "It lowers a note by ½ step", "options": ["It raises a note by ½ step", "It lowers a note by ½ step", "It erases a previous sharp or flat"]}, {"category": "Music Literacy", "q": "How does a natural symbol change a note?", "a": "It erases a previous sharp or flat", "options": ["It raises a note by ½ step", "It lowers a note by ½ step", "It erases a previous sharp or flat"]}, {"category": "Music Literacy", "q": "What is the purpose of a key signature?", "a": "It shows which notes are sharp or flat and helps identify the key", "options": []}, {"category": "Music Literacy", "q": "What is the correct order of solfege?", "a": "Do, Re, Mi, Fa, Sol, La, Ti, Do", "options": ["Do, Re, Mi, Fa, Sol, La, Ti, Do", "Do, Mi, Sol, Re, Fal, La, Ti, Do", "Do, Re, Mi, Fa, Sol, Ti, La, Do"]}, {"category": "Music Literacy", "q": "What solfege syllable is below do?", "a": "Ti A", "options": ["Ti A", "Re B", "Mi C"]}, {"category": "Music Literacy", "q": "The last sharp of a key signature is?", "a": "Ti", "options": ["Do", "Ti", "High Do"]}, {"category": "Music Literacy", "q": "A measure is…", "a": "the space between 2 bar lines", "options": ["the space between 2 staff lines", "the space between 2 treble clefs", "the space between 2 bar lines"]}, {"category": "Music Literacy", "q": "The last flat of a key signature is farthest to the…", "a": "Left", "options": ["Left", "Middle", "Right"]}, {"category": "Music Literacy", "q": "What are the lines above and below the staff called?", "a": "Ledger Lines", "options": ["Staff Lines", "Ledger Lines", "Bar Lines"]}, {"category": "Music Literacy", "q": "Why are ledger lines needed?", "a": "To show notes above and below the staff", "options": []}, {"category": "Music Literacy", "q": "Complete this sentence: If we don’t see any sharps or flats in our key signature…", "a": "C = Do", "options": ["C = Do", "The time signature is 4/4", "The time signature is 3/4"]}, {"category": "Music Literacy", "q": "What note names are used in the musical alphabet?", "a": "A through G", "options": ["A through G", "A through H", "A through F"]}, {"category": "Music Literacy", "q": "What are the five lines and four spaces of music called?", "a": "A staff", "options": ["A measure", "A bar line", "A staff"]}, {"category": "Rhythm", "q": "How many beats does a quarter note receive in 4-4 time?", "a": "1", "options": ["1", "2", "4"]}, {"category": "Rhythm", "q": "How many beats does a half note receive in 4-4 time?", "a": "2", "options": ["2", "3", "4"]}, {"category": "Rhythm", "q": "How many beats would a whole note receive in 4-4 time?", "a": "4", "options": ["2", "3", "4"]}, {"category": "Rhythm", "q": "How many eighth notes add up to one quarter note?", "a": "2", "options": ["2", "3", "4"]}, {"category": "Rhythm", "q": "How many quarter notes add up to one half note?", "a": "2", "options": ["2", "3", "4"]}, {"category": "Rhythm", "q": "What does a single eighth note look like?", "a": "A filled notehead with a stem and one flag (♪)", "options": []}, {"category": "Rhythm", "q": "How many beats does a dotted quarter note receive in 4-4 time?", "a": "1.5", "options": ["3", "2", "1.5"]}, {"category": "Rhythm", "q": "How many beats does a dotted half note receive in 3-4 time?", "a": "3", "options": ["3", "2", "1.5"]}, {"category": "Rhythm", "q": "How many beats does one eighth note receive in 4-4 time?", "a": "1/2", "options": ["1", "1/2", "2"]}, {"category": "Rhythm", "q": "Which rest represents one quarter-note beat in 4/4?", "a": "The quarter rest (𝄽)", "options": []}, {"category": "Rhythm", "q": "Which rest represents half a beat in 4/4?", "a": "The eighth rest (𝄾)", "options": []}, {"category": "Rhythm", "q": "How many beats would one sixteenth note receive in 4-4 time?", "a": "1/4 of a beat", "options": ["1/4 of a beat", "1/2 of a beat", "1 beat"]}, {"category": "Rhythm", "q": "How can we subdivide counting with sixteenth notes?", "a": "1 e & a, 2 e & a…", "options": ["1 & 2 &…", "1, 2…", "1 e & a, 2 e & a…"]}, {"category": "Rhythm", "q": "How many beats would four sixteenth notes combined receive in 4-4 time?", "a": "1 beat", "options": ["4 beats", "1 beat", "2 beats"]}, {"category": "Rhythm", "q": "What does a tie do to two notes?", "a": "combines the value of both notes", "options": ["slurs notes together", "combines the value of both notes", "makes it look funny"]}, {"category": "Rhythm", "q": "True or false, a tie carries over an accidental to the next note.", "a": "False", "options": ["True", "False"]}, {"category": "Rhythm", "q": "True or false, a tie is used between two different pitches.", "a": "False", "options": ["True", "False"]}, {"category": "Rhythm", "q": "How many beats does a single eighth note receive in 6-8 time?", "a": "1 beat", "options": ["1/2 beat", "1 beat", "2 beats"]}, {"category": "Rhythm", "q": "How many beats does a dotted quarter note receive in 6-8 time?", "a": "1.5 beats", "options": ["1 beat", "1.5 beats", "3 beats"]}, {"category": "Rhythm", "q": "How many beats does a quarter rest receive in 6-8 time?", "a": "1 beat", "options": ["1 beat", "2 beats", "3 beats"]}, {"category": "Rhythm", "q": "What is syncopation?", "a": "A movement away from the regular pulse of the rhythm", "options": ["A movement away from the regular pulse of the rhythm", "A movement closer to the regular pulse of the rhythm", "When the rhythm gets funky"]}, {"category": "Music Symbols", "q": "How many beats do four sixteenth notes total in 4/4?", "a": "1 beat", "options": []}, {"category": "Music Symbols", "q": "What does the dynamic symbol “mp” stand for?", "a": "moderately soft", "options": ["moderately loud", "moderately strong", "moderately soft"]}, {"category": "Music Symbols", "q": "Which dynamic is stronger than mezzo-forte?", "a": "Forte", "options": ["Forte", "Mezzo Piano", "Pianissimo"]}, {"category": "Music Symbols", "q": "What was the original name of the piano?", "a": "Clavicembalo col Piano e Forte", "options": ["Harpsichord", "Organ", "Clavicembalo col Piano e Forte"]}, {"category": "Music Symbols", "q": "What does a decrescendo symbol mean?", "a": "Gradually get softer", "options": []}, {"category": "Music Symbols", "q": "What does a diminuendo mean?", "a": "gradually get softer", "options": ["gradually get louder", "dim the lights", "gradually get softer"]}, {"category": "Music Symbols", "q": "What does a crescendo symbol mean?", "a": "Gradually get louder", "options": []}, {"category": "Music Symbols", "q": "What is a bracket labeled “2.” over a passage?", "a": "Second ending", "options": []}, {"category": "Music Symbols", "q": "What does a repeat ending labeled “1.” indicate?", "a": "First ending; take it on the first pass", "options": []}, {"category": "Music Symbols", "q": "What does an end-repeat sign tell the performer?", "a": "Return to the matching start-repeat sign", "options": []}, {"category": "Music Symbols", "q": "What is the definition of tempo?", "a": "The speed of the beat", "options": ["The speed of sound", "Time Signature", "The speed of the beat"]}, {"category": "Music Symbols", "q": "What does adagio mean?", "a": "Slowly with great expression", "options": ["Slowly with great expression", "Soft", "Fast"]}, {"category": "Music Symbols", "q": "What does allegro mean?", "a": "Fast", "options": ["Slow", "Loud", "Fast"]}, {"category": "Music Symbols", "q": "True or false, the correct path for the ALTO part continues through the ALTO, TENOR, and BASS parts.", "a": "False", "options": ["True", "False"]}, {"category": "Music Symbols", "q": "True or false, the correct path of the soprano part continues only through the soprano lines.", "a": "True", "options": ["True", "False"]}, {"category": "Music Symbols", "q": "True or false, the correct path for the Bass part follows the Tenor lines.", "a": "False", "options": ["True", "False"]}, {"category": "Music Symbols", "q": "What does staccato mean?", "a": "short & detached", "options": ["short & detached", "smooth & connected", "short & connected"]}, {"category": "Music Symbols", "q": "What does the dot in a dotted half note do to this note?", "a": "It adds 1 beat", "options": ["It makes the note staccato", "It adds 3 beats", "It adds 1 beat"]}, {"category": "Music Symbols", "q": "What does legato mean?", "a": "smooth & connected", "options": ["short & detached", "smooth & connected", "short & connected"]}, {"category": "Music Symbols", "q": "What is a phrase?", "a": "A musical sentence", "options": ["A musical word", "A musical sentence", "A long note"]}, {"category": "Music Symbols", "q": "What is something a performer should not do in the middle of a phrase?", "a": "Take a breath", "options": ["Take a breath", "Take a breath mint", "Take a break"]}, {"category": "Music Symbols", "q": "What does “D.S.” in “D.S. al Fine” mean?", "a": "“From the sign”", "options": ["“From the sign”", "“From the start”", "“From the 1st repeat”"]}, {"category": "Music Symbols", "q": "What does “D.S. al Coda” mean?", "a": "“From the sign to the tail”", "options": ["“From the sign to the beginning”", "“From the sign to the tail”", "“From the sign to the repeat”"]}, {"category": "Music Symbols", "q": "What does sforzando piano mean?", "a": "suddenly loud, then soft", "options": ["suddenly loud", "suddenly loud, then soft", "suddenly soft"]}, {"category": "Music Symbols", "q": "What does subito piano mean?", "a": "suddenly soft", "options": ["suddenly loud", "suddenly loud, then soft", "suddenly soft"]}, {"category": "Music Symbols", "q": "What does sforzando tell a performer to do?", "a": "forcefully accent a note", "options": ["gradually get louder", "forcefully accent a note", "gradually get softer"]}, {"category": "Music Creation", "q": "What is an easy trick to draw a treble clef?", "a": "Draw a long “S” and then part of an “8”", "options": ["Draw a Bass Clef first", "Draw a long line and then an “8”", "Draw a long “S” and then part of an “8”"]}, {"category": "Music Creation", "q": "What is a trick for drawing equal measures?", "a": "Divide the staff in half first", "options": ["Divide the staff in half first", "Start on the left", "Start on the right"]}, {"category": "Music Creation", "q": "What is a quick way to draw the head of a note?", "a": "Draw a dash for the note head", "options": ["Draw a dash for the note head", "Fill in the note head completely", "Draw the mustache first"]}, {"category": "Music Creation", "q": "What is a melody?", "a": "The main singable part of a song", "options": []}, {"category": "Music Creation", "q": "Can any instrument perform a melody in a piece of music?", "a": "Yes", "options": ["Yes", "No"]}, {"category": "Music Creation", "q": "What is an important part of most melodies?", "a": "Patterns", "options": ["Rests", "Dynamics", "Patterns"]}, {"category": "Music Creation", "q": "What is harmony?", "a": "Two or more notes performed at the same time", "options": []}, {"category": "Music Creation", "q": "True or false, a harmony adds emotion to a melody.", "a": "True", "options": ["True", "False"]}, {"category": "Music Creation", "q": "What is one of the most popular forms of harmony?", "a": "A triad", "options": ["A triad", "A measure", "A melody"]}, {"category": "Music Creation", "q": "What is something that has no impact on a melody?", "a": "Your handwriting", "options": ["The bass line", "The harmonies", "Your handwriting"]}, {"category": "Music Creation", "q": "True or false, a bass line can perform the melody.", "a": "True", "options": ["True", "False"]}, {"category": "Music Creation", "q": "How can the bass line affect a melody?", "a": "It can change the emotion of the melody", "options": []}, {"category": "Music Creation", "q": "What is a chord progression?", "a": "A sequence of different harmonies", "options": []}, {"category": "Music Creation", "q": "Where are the main places to include patterns in a melody?", "a": "The rhythm & pitch selection", "options": ["The pitch selections & dynamics", "The rhythm & pitch selection", "The rhythm & time signature"]}, {"category": "Music Creation", "q": "What is something that can improve your melody?", "a": "Adding lyrics", "options": ["Changing the bass line", "Adding harmonies", "Adding lyrics"]}, {"category": "Music Creation", "q": "What is an example of pop music form?", "a": "Verse–Chorus–Verse–Bridge–Chorus", "options": []}, {"category": "Music Creation", "q": "In ABA form, what does the second A represent?", "a": "The replay of the first “A” section", "options": ["The Bridge", "The Chorus", "The replay of the first “A” section"]}, {"category": "Music Creation", "q": "How does song form help composers?", "a": "It organizes musical ideas", "options": []}, {"category": "Music Creation", "q": "How many syllables per note are commonly used when writing lyrics?", "a": "One syllable per note", "options": []}, {"category": "Music Creation", "q": "What is a helpful starting point for lyrics?", "a": "Something that interests or inspires you", "options": []}, {"category": "Music Creation", "q": "What can you use instead of writing original lyrics?", "a": "Public-domain poetry", "options": []}, {"category": "Music Creation", "q": "How can tempo affect a melody?", "a": "It can affect the emotion of the melody", "options": []}, {"category": "Music Creation", "q": "True or false, percussion is not necessary in a piece of music.", "a": "False", "options": ["True", "False"]}, {"category": "Music Creation", "q": "What is an easy way to experiment with instrumentation?", "a": "Try different instruments with a MIDI file - Learn to play every instrument", "options": ["Try different instruments with a MIDI file - Learn to play every instrument", "Listen to music with different nstrumentation"]}, {"category": "Music Creation", "q": "How many instruments should perform in a piece of music?", "a": "As many as you like!", "options": ["1 instrument", "1–10 instruments", "As many as you like!"]}, {"category": "Music Creation", "q": "What is important to keep in mind when selecting instrumentation?", "a": "Performance ranges of instruments", "options": ["How many instruments you are using", "Performance ranges of instruments", "The total number of notes"]}, {"category": "Music Creation", "q": "What is one way to create contrast in your composition?", "a": "Change the dynamics or instrumentation n a new section", "options": ["Change the dynamics or instrumentation n a new section", "Repeat the same melody and chords exactly", "Keep every section the same tempo and volume"]}, {"category": "Music History", "q": "How is sound created?", "a": "By vibrations", "options": []}, {"category": "Music History", "q": "What distinguishes music from sound in this quiz?", "a": "Music contains patterns", "options": []}, {"category": "Music History", "q": "Why can’t sound travel through empty space?", "a": "There is no medium for sound waves to travel through", "options": []}, {"category": "Music History", "q": "Who first developed the idea of Solfege?", "a": "Guido de Arezzo", "options": ["Ludwig van Beethoven", "Guido de Arezzo", "Mozart"]}, {"category": "Music History", "q": "What was different about the earliest musical staff created by Guido de Arezzo?", "a": "The staff consisted of 4 lines", "options": ["The staff consisted of 4 lines", "The staff consisted of 5 lines", "The staff contained solfege"]}, {"category": "Music History", "q": "How did singers learn melodies before notation?", "a": "By listening and singing them back", "options": []}, {"category": "Music History", "q": "Which style of music was NOT popular during the Medieval period?", "a": "Orchestral music", "options": ["Orchestral music", "Sacred music", "Instrumental music"]}, {"category": "Music History", "q": "What is sacred music?", "a": "Music composed for religious use or worship", "options": []}, {"category": "Music History", "q": "About how long did the Medieval Period span?", "a": "About 1,000 years", "options": []}, {"category": "Music History", "q": "What does the word “renaissance” literally mean?", "a": "Rebirth", "options": ["Remember", "Renown", "Rebirth"]}, {"category": "Music History", "q": "What is polyphonic music?", "a": "Music with multiple simultaneous melodic lines", "options": []}, {"category": "Music History", "q": "What is a chorale?", "a": "A usually harmonized psalm or hymn", "options": []}, {"category": "Music History", "q": "Which individual was NOT a popular composer of the Baroque Period?", "a": "Guido de Arezzo", "options": ["Johan Sebastian Bach", "Guido de Arezzo", "Frederick Handel"]}, {"category": "Music History", "q": "What characterized many Baroque melodies?", "a": "Ornamentation", "options": []}, {"category": "Music History", "q": "What was one of the most popular instruments of the Baroque Period?", "a": "The harpsichord", "options": ["The trumpet", "The electric guitar", "The harpsichord"]}, {"category": "Music History", "q": "Which individual was NOT a popular composer of the Classical Period?", "a": "Johan Sebastian Bach", "options": ["Ludwig van Beethoven", "Johan Sebastian Bach", "Mozart"]}, {"category": "Music History", "q": "What characterized many Classical-period melodies?", "a": "Memorable melodies", "options": []}, {"category": "Music History", "q": "What musical instrument was NOT featured in the orchestra during the Classical Period?", "a": "The piano", "options": ["The piano", "The clarinet", "The violin"]}, {"category": "Music History", "q": "Which individual was NOT a popular composer of the Romantic Period?", "a": "Vivaldi", "options": ["Chopin", "Tchaikovsky", "Vivaldi"]}, {"category": "Music History", "q": "What important part of history took place during the Romantic Period?", "a": "The Industrial Revolution", "options": ["The invention of the printing press", "The Industrial Revolution", "The invention of the violin"]}, {"category": "Music History", "q": "What is a nocturne?", "a": "A piece inspired by nighttime", "options": []}, {"category": "Music History", "q": "What historical book contains some of the earliest pieces of music that were probably sung by groups of people?", "a": "The book of Psalms", "options": ["Chopin’s book of nocturnes", "Mozart’s first piano book", "The book of Psalms"]}, {"category": "Music History", "q": "Out of these options, which style of vocal music developed first?", "a": "Gregorian Chant", "options": ["Polyphonic Music", "Gregorian Chant", "Opera"]}, {"category": "Music History", "q": "When did the 4 part vocal structure of the choir start to become more popular?", "a": "The late 1400’s", "options": ["The late 1400’s", "The late 1700’s", "The late 1800’s"]}, {"category": "Music History", "q": "What instrument inspired the modern day violin?", "a": "The Viola da Gamba", "options": ["The piano", "The Viola da Gamba", "The flute"]}, {"category": "Music History", "q": "What is chamber music?", "a": "Music for a small ensemble", "options": []}, {"category": "Music History", "q": "What is a symphony orchestra?", "a": "An orchestra with the instruments needed to play a symphony", "options": []}, {"category": "Music History", "q": "How did printing affect Renaissance music?", "a": "It made written music more widely available", "options": []}, {"category": "Music History", "q": "Which instrument gradually replaced the viol in chamber music during the 1600s?", "a": "Violin", "options": ["Harpsichord", "Violin", "Flute"]}, {"category": "Music History", "q": "By the late 1600s, what did the term “orchestra” commonly refer to?", "a": "The area in front of the stage where musicians sat", "options": ["A type of symphony for voices", "The conductor’s raised platform", "The area in front of the stage where musicians sat"]}, {"category": "Music Genres", "q": "Which individual was NOT a popular composer of Classical music as a genre?", "a": "Elvis Presley", "options": ["Ludwig van Beethoven", "Elvis Presley", "Wolfgang Amadeus Mozart"]}, {"category": "Music Genres", "q": "What is a defining characteristic of Classical music as a genre?", "a": "Structured forms and memorable melodies", "options": ["Heavy use of electronic instruments", "Structured forms and memorable melodies", "Improvisational style"]}, {"category": "Music Genres", "q": "Which instrument is typically featured in Classical music compositions?", "a": "Piano", "options": ["Electric guitar", "Synthesizer", "Piano"]}, {"category": "Music Genres", "q": "Which individual was NOT a key figure in the development of Blues music?", "a": "Ludwig van Beethoven", "options": ["Robert Johnson", "Ludwig van Beethoven", "B.B. King"]}, {"category": "Music Genres", "q": "What is characteristic of the 12-bar blues structure?", "a": "It follows a specific chord progression over 12 bars", "options": ["It has 16 measures", "It follows a specific chord progression over 12 bars", "It uses a minor scale exclusively"]}, {"category": "Music Genres", "q": "Which instrument is NOT typically associated with Blues music?", "a": "The violin", "options": ["The harmonica", "The electric guitar", "The violin"]}, {"category": "Music Genres", "q": "Which musician is NOT associated with the Jazz genre?", "a": "Elvis Presley", "options": ["Louis Armstrong", "Duke Ellington", "Elvis Presley"]}, {"category": "Music Genres", "q": "What is a key characteristic of Jazz music?", "a": "Improvisation", "options": ["Simple, repetitive melodies", "Improvisation", "Strict adherence to sheet music"]}, {"category": "Music Genres", "q": "Which instrument is NOT commonly found in a Jazz ensemble?", "a": "Harpsichord", "options": ["Saxophone", "Trumpet", "Harpsichord"]}, {"category": "Music Genres", "q": "Which individual was NOT a key figure in American folk music?", "a": "Ludwig van Beethoven", "options": ["Pete Seeger", "Ludwig van Beethoven", "Woody Guthrie"]}, {"category": "Music Genres", "q": "What inspired Woody Guthrie’s “This Land Is Your Land”?", "a": "His travels during the Great Depression", "options": []}, {"category": "Music Genres", "q": "Which instrument is typically NOT associated with folk music?", "a": "Electric guitar", "options": ["Acoustic guitar", "Banjo", "Electric guitar"]}, {"category": "Music Genres", "q": "Which individual was NOT a key figure in the development of Country music?", "a": "Louis Armstrong", "options": ["Louis Armstrong", "Jimmie Rodgers", "Hank Williams"]}, {"category": "Music Genres", "q": "What is a common theme in Country music lyrics?", "a": "Love and heartache", "options": ["Space exploration", "Love and heartache", "Abstract art"]}, {"category": "Music Genres", "q": "Which instrument is NOT typically associated with Country music?", "a": "The harpsichord", "options": ["The banjo", "The harpsichord", "The fiddle"]}, {"category": "Music Genres", "q": "Which individual is NOT associated with R&B/Soul music?", "a": "Johann Sebastian Bach", "options": ["Ray Charles", "Aretha Franklin", "Johann Sebastian Bach"]}, {"category": "Music Genres", "q": "What is a characteristic of R&B/Soul music?", "a": "Strong, emotional vocals", "options": ["Simple chord progressions", "Strong, emotional vocals", "Strict classical forms"]}, {"category": "Music Genres", "q": "Which instrument is NOT typically associated with R&B/Soul music?", "a": "The sitar", "options": ["The sitar", "The electric guitar", "The piano"]}, {"category": "Music Genres", "q": "Which musician is NOT associated with Rock music?", "a": "Duke Ellington", "options": ["Duke Ellington", "Elvis Presley", "Chuck Berry"]}, {"category": "Music Genres", "q": "What is a defining feature of Rock music?", "a": "Strong backbeat and electric guitar riffs", "options": ["Soft, mellow tones", "Strong backbeat and electric guitar riffs", "Gregorian chants"]}, {"category": "Music Genres", "q": "Which instrument is NOT commonly used in Rock music?", "a": "Oboe", "options": ["Electric guitar", "Drums", "Oboe"]}, {"category": "Music Genres", "q": "Which individual is NOT associated with Pop music?", "a": "Woody Guthrie", "options": ["Michael Jackson", "Madonna", "Woody Guthrie"]}, {"category": "Music Genres", "q": "What is a common characteristic of Pop music?", "a": "Catchy melodies and repeated choruses", "options": ["Long, improvised solos", "Catchy melodies and repeated choruses", "Heavy use of minor scales"]}, {"category": "Music Genres", "q": "Which instrument is NOT typically associated with Pop music?", "a": "Bagpipes", "options": ["Bagpipes", "Keyboards", "Electric guitar"]}, {"category": "Music Genres", "q": "Which individual is NOT associated with Hip-Hop/Rap music?", "a": "Wolfgang Amadeus Mozart", "options": ["Tupac Shakur", "Wolfgang Amadeus Mozart", "DJ Kool Herc"]}, {"category": "Music Genres", "q": "What is a defining feature of Hip- Hop/Rap music?", "a": "Rhythmic spoken lyrics", "options": ["Instrumental compositions", "Opera-style singing", "Rhythmic spoken lyrics"]}, {"category": "Music Genres", "q": "Which instrument is NOT typically used in Hip-Hop/Rap music production?", "a": "Harpsichord", "options": ["Harpsichord", "Drum machine", "Turntables"]}, {"category": "Music Genres", "q": "Which composer is best known for the Super Mario Bros. theme?", "a": "Koji Kondo", "options": ["Koji Kondo", "Martin O’Donnell", "Hans Zimmer"]}, {"category": "Music Genres", "q": "Which statement best describes early video game music?", "a": "Created with simple synthesized/chiptune loops due to hardware limits", "options": ["Mostly live orchestral recordings", "Created with simple synthesized/chiptune loops due to hardware limits", "Mostly a cappella vocals"]}, {"category": "Music Genres", "q": "Which composer is associated with the Halo series?", "a": "Martin O’Donnell", "options": ["Martin O’Donnell", "Koji Kondo", "Nobuo Uematsu"]}, {"category": "World Music", "q": "Which musical feature is most characteristic of African American spirituals?", "a": "Call & Response", "options": ["Call & Response", "12-tone serialism", "Gregorian Chant"]}, {"category": "World Music", "q": "Spirituals most often rely on which scale?", "a": "Pentatonic Scale", "options": ["Chromatic Scale", "Whole-tone Scale", "Pentatonic Scale"]}, {"category": "World Music", "q": "How did spirituals influence Latin, later American music?", "a": "They laid the groundwork for Gospel, Blues, & Jazz", "options": ["They laid the groundwork for Gospel, Blues, & Jazz", "They stopped being performed after 190", "They introduced synthesizers that shape Techno"]}, {"category": "World Music", "q": "Which instrument is most closely identified with traditional gospel music?", "a": "Hammond Organ", "options": ["Hammond Organ", "Sitar", "Panpipes"]}, {"category": "World Music", "q": "What rhythmic trait gives gospel music its characteristic drive?", "a": "Syncopated emphasis on beats 2 & 4", "options": ["Strict beat-1 down-strokes only", "Syncopated emphasis on beats 2 & 4", "Completely free-time chanting with no pulse"]}, {"category": "World Music", "q": "How did gospel music influence later popular genres?", "a": "It helped inspire Soul and R&B artists like Aretha Franklin", "options": ["It introduced electronic dance beats in Techno clubs of the 1800’s", "It eliminated all improvisation in Jazz", "It helped inspire Soul and R&B artists like Aretha Franklin"]}, {"category": "World Music", "q": "Which drum is the primary hand- played instrument in many West African ensembles?", "a": "Djembe", "options": ["Djembe", "Bodhran", "Taiko"]}, {"category": "World Music", "q": "What term describes the layering of several different rhythms at once?", "a": "Polyrhythm", "options": ["Serialism", "Monophony", "Polyrhythm"]}, {"category": "World Music", "q": "In West African drumming, what is the main purpose of the timeline bell pattern?", "a": "It provides a constant rhythmic anchor", "options": ["It provides a constant rhythmic anchor", "It plays the main melody of the song", "It signals dancers to leave the circle"]}, {"category": "World Music", "q": "Which instrument was originally invented from recycled oil barrels?", "a": "Steel Pan", "options": ["Steel Pan", "Sitar", "Violin"]}, {"category": "World Music", "q": "What rhythmic accents help create reggae’s swaying feel?", "a": "Off-beat accents on beats 2 and 4", "options": []}, {"category": "World Music", "q": "Which annual festival is most closely linked with calypso and soca music?", "a": "Trinidad Carnival", "options": ["Holi Festival", "Oktoberfest", "Trinidad Carnival"]}, {"category": "World Music", "q": "Which rhythmic pattern is the cornerstone of salsa music?", "a": "Clave", "options": ["One-drop", "Waltz ostinato", "Clave"]}, {"category": "World Music", "q": "Which Brazilian festival features samba music?", "a": "Carnival in Rio de Janeiro", "options": ["Carnival in Rio de Janeiro", "Oktoberfest", "Diwali"]}, {"category": "World Music", "q": "In a traditional mariachi ensemble, what role does the guitarrón play?", "a": "Provides deep bass foundation", "options": ["Acts as a hand percussion shaker", "Plays high-pitched melodies", "Provides deep bass foundation"]}, {"category": "World Music", "q": "What instrument is central to a plain-style powwow song?", "a": "A large communal drum", "options": []}, {"category": "World Music", "q": "In Native American music, what are vocables?", "a": "Meaning-free syllables that are sung", "options": ["Electronic effects from a synthesizer", "Meaning-free syllables that are sung", "Secret English codes describing scape routes"]}, {"category": "World Music", "q": "What is a gathering where tribes share songs, dance, and culture?", "a": "Powwow", "options": ["Carnival", "Oktoberfest", "Powwow"]}, {"category": "World Music", "q": "In Indian classical music, what is raga?", "a": "A melodic framework with specific rules", "options": ["A chromatic scale used in Jazz", "A brand of Indian drumsticks", "A melodic framework with specific rules"]}, {"category": "World Music", "q": "What is the name of the rhythmic cycle in classical Indian music?", "a": "Tāla", "options": ["Tāla", "Fugue", "Verse-Chorus"]}, {"category": "World Music", "q": "What does the tanpura provide?", "a": "A continuous drone pitch", "options": []}, {"category": "World Music", "q": "Which scale forms the melodic sound of most traditional Chinese music?", "a": "Pentatonic", "options": ["Major Scale", "Whole-Tone", "Pentatonic"]}, {"category": "World Music", "q": "Which of the following is not a commonly used instrument in Chinese traditional music?", "a": "Sitar", "options": ["Erhu", "Guzheng", "Sitar"]}, {"category": "World Music", "q": "What is the bamboo flute with a buzzing membrane called?", "a": "Dizi", "options": ["Shakuhachi", "Dizi", "Panpipe"]}, {"category": "World Music", "q": "What are the large barrel drums featured in Japanese festivals called?", "a": "Taiko", "options": ["Taiko", "Djembe", "Bodhrán"]}, {"category": "World Music", "q": "In Japanese culture, what is the concept of “ma”?", "a": "Purposeful silence or space within the music", "options": ["A minor pentatonic scale", "A fast virtuosic ending section", "Purposeful silence or space within the music"]}, {"category": "World Music", "q": "Which string instrument often uses movable bridges and pitch bends?", "a": "Koto", "options": ["Guitar", "Koto", "Harp"]}, {"category": "World Music", "q": "What is the name of the traditional Irish frame drum?", "a": "Bodhrán", "options": ["Conga", "Taiko", "Bodhrán"]}, {"category": "World Music", "q": "A jig is most commonly counted in which meter?", "a": "6/8", "options": ["6/8", "3/4", "5/4"]}, {"category": "World Music", "q": "How are most Celtic tunes traditionally taught and shared?", "a": "By ear in informal gatherings", "options": ["Through orchestral scores", "By ear in informal gatherings", "With electronic backing tracks"]}];
+</style></head><body><header><h1>🎵 Music Study Studio</h1><p>Flashcards + reviewed multiple-choice practice • Study at your own pace</p></header><main class="wrap"><div class="toolbar"><label for="category">Topic</label><select id="category"></select><button id="flash" class="active">🃏 Flashcards</button><button id="quiz">📝 Multiple choice</button></div><div class="toolbar"><button id="shuffle">🔀 Shuffle</button><button id="missed">Practice still learning</button><button id="reset">Reset this topic</button></div><div class="stats"><span id="count"></span><span id="progress"></span></div><div class="track"><div id="fill" class="fill"></div></div><section id="study"><button id="card" class="card" aria-label="Flip flashcard"><small id="cardhint">QUESTION • Tap to flip</small><span id="cardtext"></span></button><div id="choices" class="choicegrid" hidden></div><div id="feedback" class="feedback" aria-live="polite"></div><div class="actions"><button id="prev">← Previous</button><button id="again">✕ Still learning</button><button id="know" class="primary">✓ Know it</button><button id="next">Next →</button></div></section><section id="empty"><h2>Nice work! 🎉</h2><p>No cards match this filter. Switch back to all cards to keep studying.</p><button id="all">Show all cards</button></section><footer>Adapted for study from the supplied ThreeMinuteTheory.com quizzes. Multiple-choice practice uses only the choices saved with each question; cards without verified choices remain available as flashcards. Some original questions were clarified for accuracy. Progress is saved only in this browser on this device; it is not submitted to your teacher or Canvas. No login required.</footer></main><script>
+// EDIT QUESTIONS BELOW: q = question, a = correct answer, options = answer choices.
+// Keep exactly one correct answer in options. Cards with options: [] are flashcards only.
+const CARDS = [
+  {
+    "category": "Music Literacy",
+    "q": "What is the next letter of the musical alphabet that is higher than the note A?",
+    "a": "B",
+    "options": [
+      "G",
+      "B",
+      "F"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "How many lines make up one musical staff?",
+    "a": "5",
+    "options": [
+      "4",
+      "5",
+      "6"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What is another name for the bass clef?",
+    "a": "F Clef",
+    "options": [
+      "G Clef",
+      "F Clef",
+      "Treble Clef"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "Which clef is usually used for higher pitched voices and instruments?",
+    "a": "Treble Clef",
+    "options": [
+      "Treble Clef",
+      "Bass Clef",
+      "Alto Clef"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "True or false, a group of musical parts is called a measure.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "True or false, a measure is the space between two staff lines.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "True or false, a musical system is a group of all the instruments or voices in a piece of music.",
+    "a": "True",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What does the top number of a time signature tell us?",
+    "a": "Beats per measure",
+    "options": [
+      "Beats per measure",
+      "Beats per line",
+      "Which note value receives one beat"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "How many beats per measure do we have in 6-8 time?",
+    "a": "6",
+    "options": [
+      "6",
+      "7",
+      "8"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "True or false, the bottom number of a time signature tells us how many measures fit in one line.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What is the correct order of treble clef lines, bottom line to top line?",
+    "a": "E, G, B, D, F",
+    "options": [
+      "E, G, B, D, F",
+      "E, B, G, D, F",
+      "G, B, D, F, A"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What is another name for the treble clef?",
+    "a": "G Clef",
+    "options": [
+      "F Clef",
+      "Bass Clef",
+      "G Clef"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What pitch is lower than E?",
+    "a": "D",
+    "options": [
+      "F",
+      "D",
+      "G"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What are the bass clef line notes from bottom to top?",
+    "a": "G, B, D, F, A",
+    "options": [
+      "G, B, D, F, A",
+      "E, G, B, D, F"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What does the sharp symbol (♯) look like?",
+    "a": "♯; it raises a note by a half step",
+    "options": [
+      "♯; it raises a note by a half step",
+      "♭; it lowers a note by a half step"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "How does a flat sign change a note?",
+    "a": "It lowers a note by ½ step",
+    "options": [
+      "It raises a note by ½ step",
+      "It lowers a note by ½ step",
+      "It erases a previous sharp or flat"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "How does a natural symbol change a note?",
+    "a": "It erases a previous sharp or flat",
+    "options": [
+      "It raises a note by ½ step",
+      "It lowers a note by ½ step",
+      "It erases a previous sharp or flat"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What is the purpose of a key signature?",
+    "a": "It shows which notes are sharp or flat and helps identify the key",
+    "options": [
+      "It shows which notes are sharp or flat and helps identify the key",
+      "It tells how fast the music should be played"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What is the correct order of solfege?",
+    "a": "Do, Re, Mi, Fa, Sol, La, Ti, Do",
+    "options": [
+      "Do, Re, Mi, Fa, Sol, La, Ti, Do",
+      "Do, Mi, Sol, Re, Fal, La, Ti, Do",
+      "Do, Re, Mi, Fa, Sol, Ti, La, Do"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What solfege syllable is below do?",
+    "a": "Ti",
+    "options": [
+      "Ti",
+      "Re",
+      "Mi"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "The last sharp of a key signature is?",
+    "a": "Ti",
+    "options": [
+      "Do",
+      "Ti",
+      "High Do"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "A measure is…",
+    "a": "the space between 2 bar lines",
+    "options": [
+      "the space between 2 staff lines",
+      "the space between 2 treble clefs",
+      "the space between 2 bar lines"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "The last flat of a key signature is farthest to the…",
+    "a": "Left",
+    "options": [
+      "Left",
+      "Middle",
+      "Right"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What are the lines above and below the staff called?",
+    "a": "Ledger Lines",
+    "options": [
+      "Staff Lines",
+      "Ledger Lines",
+      "Bar Lines"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "Why are ledger lines needed?",
+    "a": "To show notes above and below the staff",
+    "options": [
+      "To show notes above and below the staff",
+      "To show notes only between the staff lines"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "Complete this sentence: If we don’t see any sharps or flats in our key signature…",
+    "a": "C = Do",
+    "options": [
+      "C = Do",
+      "The time signature is 4/4",
+      "The time signature is 3/4"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What note names are used in the musical alphabet?",
+    "a": "A through G",
+    "options": [
+      "A through G",
+      "A through H",
+      "A through F"
+    ]
+  },
+  {
+    "category": "Music Literacy",
+    "q": "What are the five lines and four spaces of music called?",
+    "a": "A staff",
+    "options": [
+      "A measure",
+      "A bar line",
+      "A staff"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a quarter note receive in 4-4 time?",
+    "a": "1",
+    "options": [
+      "1",
+      "2",
+      "4"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a half note receive in 4-4 time?",
+    "a": "2",
+    "options": [
+      "2",
+      "3",
+      "4"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats would a whole note receive in 4-4 time?",
+    "a": "4",
+    "options": [
+      "2",
+      "3",
+      "4"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many eighth notes add up to one quarter note?",
+    "a": "2",
+    "options": [
+      "2",
+      "3",
+      "4"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many quarter notes add up to one half note?",
+    "a": "2",
+    "options": [
+      "2",
+      "3",
+      "4"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "What does a single eighth note look like?",
+    "a": "A filled notehead with a stem and one flag (♪)",
+    "options": [
+      "A filled notehead with a stem and one flag (♪)",
+      "An open notehead with a stem and no flag"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a dotted quarter note receive in 4-4 time?",
+    "a": "1.5",
+    "options": [
+      "3",
+      "2",
+      "1.5"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a dotted half note receive in 3-4 time?",
+    "a": "3",
+    "options": [
+      "3",
+      "2",
+      "1.5"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does one eighth note receive in 4-4 time?",
+    "a": "1/2",
+    "options": [
+      "1",
+      "1/2",
+      "2"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "Which rest represents one quarter-note beat in 4/4?",
+    "a": "The quarter rest (𝄽)",
+    "options": [
+      "The quarter rest (𝄽)",
+      "The half rest (𝄼)"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "Which rest represents half a beat in 4/4?",
+    "a": "The eighth rest (𝄾)",
+    "options": [
+      "The eighth rest (𝄾)",
+      "The quarter rest (𝄽)"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats would one sixteenth note receive in 4-4 time?",
+    "a": "1/4 of a beat",
+    "options": [
+      "1/4 of a beat",
+      "1/2 of a beat",
+      "1 beat"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How can we subdivide counting with sixteenth notes?",
+    "a": "1 e & a, 2 e & a…",
+    "options": [
+      "1 & 2 &…",
+      "1, 2…",
+      "1 e & a, 2 e & a…"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats would four sixteenth notes combined receive in 4-4 time?",
+    "a": "1 beat",
+    "options": [
+      "4 beats",
+      "1 beat",
+      "2 beats"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "What does a tie do to two notes?",
+    "a": "combines the value of both notes",
+    "options": [
+      "slurs notes together",
+      "combines the value of both notes",
+      "makes it look funny"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "True or false, a tie always carries an accidental to a new, untied note in the next measure.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "True or false, a tie is used between two different pitches.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a single eighth note receive in 6-8 time?",
+    "a": "1 eighth-note beat",
+    "options": [
+      "1 eighth-note beat",
+      "2 eighth-note beats",
+      "3 eighth-note beats"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a dotted quarter note receive in 6-8 time?",
+    "a": "3 eighth-note beats",
+    "options": [
+      "1 eighth-note beat",
+      "2 eighth-note beats",
+      "3 eighth-note beats"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "How many beats does a quarter rest receive in 6-8 time?",
+    "a": "2 eighth-note beats",
+    "options": [
+      "1 eighth-note beat",
+      "2 eighth-note beats",
+      "3 eighth-note beats"
+    ]
+  },
+  {
+    "category": "Rhythm",
+    "q": "What is syncopation?",
+    "a": "A movement away from the regular pulse of the rhythm",
+    "options": [
+      "A movement away from the regular pulse of the rhythm",
+      "A movement closer to the regular pulse of the rhythm",
+      "When the rhythm gets funky"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "How many beats do four sixteenth notes total in 4/4?",
+    "a": "1 beat",
+    "options": [
+      "1 beat",
+      "4 beats"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does the dynamic symbol “mp” stand for?",
+    "a": "moderately soft",
+    "options": [
+      "moderately loud",
+      "moderately strong",
+      "moderately soft"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "Which dynamic is stronger than mezzo-forte?",
+    "a": "Forte",
+    "options": [
+      "Forte",
+      "Mezzo Piano",
+      "Pianissimo"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What was the original name of the piano?",
+    "a": "Clavicembalo col Piano e Forte",
+    "options": [
+      "Harpsichord",
+      "Organ",
+      "Clavicembalo col Piano e Forte"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does a decrescendo symbol mean?",
+    "a": "Gradually get softer",
+    "options": [
+      "Gradually get softer",
+      "Gradually get louder"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does a diminuendo mean?",
+    "a": "gradually get softer",
+    "options": [
+      "gradually get louder",
+      "dim the lights",
+      "gradually get softer"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does a crescendo symbol mean?",
+    "a": "Gradually get louder",
+    "options": [
+      "Gradually get louder",
+      "Gradually get softer"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What is a bracket labeled “2.” over a passage?",
+    "a": "Second ending",
+    "options": [
+      "Second ending",
+      "First ending"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does a repeat ending labeled “1.” indicate?",
+    "a": "First ending; take it on the first pass",
+    "options": [
+      "First ending; take it on the first pass",
+      "Second ending; take it on the second pass"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does an end-repeat sign tell the performer?",
+    "a": "Return to the matching start-repeat sign",
+    "options": [
+      "Return to the matching start-repeat sign",
+      "Continue forward without repeating"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What is the definition of tempo?",
+    "a": "The speed of the beat",
+    "options": [
+      "The speed of sound",
+      "Time Signature",
+      "The speed of the beat"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does adagio mean?",
+    "a": "Slowly with great expression",
+    "options": [
+      "Slowly with great expression",
+      "Soft",
+      "Fast"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does allegro mean?",
+    "a": "Fast",
+    "options": [
+      "Slow",
+      "Loud",
+      "Fast"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "True or false, the correct path for the ALTO part continues through the ALTO, TENOR, and BASS parts.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "True or false, the correct path of the soprano part continues only through the soprano lines.",
+    "a": "True",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "True or false, the correct path for the Bass part follows the Tenor lines.",
+    "a": "False",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does staccato mean?",
+    "a": "short & detached",
+    "options": [
+      "short & detached",
+      "smooth & connected",
+      "short & connected"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does the dot in a dotted half note do to this note?",
+    "a": "It adds 1 beat",
+    "options": [
+      "It makes the note staccato",
+      "It adds 3 beats",
+      "It adds 1 beat"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does legato mean?",
+    "a": "smooth & connected",
+    "options": [
+      "short & detached",
+      "smooth & connected",
+      "short & connected"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What is a phrase?",
+    "a": "A musical sentence",
+    "options": [
+      "A musical word",
+      "A musical sentence",
+      "A long note"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What is something a performer should not do in the middle of a phrase?",
+    "a": "Take a breath",
+    "options": [
+      "Take a breath",
+      "Take a breath mint",
+      "Take a break"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does “D.S.” in “D.S. al Fine” mean?",
+    "a": "“From the sign”",
+    "options": [
+      "“From the sign”",
+      "“From the start”",
+      "“From the 1st repeat”"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does “D.S. al Coda” mean?",
+    "a": "“From the sign to the tail”",
+    "options": [
+      "“From the sign to the beginning”",
+      "“From the sign to the tail”",
+      "“From the sign to the repeat”"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does sforzando piano mean?",
+    "a": "suddenly loud, then soft",
+    "options": [
+      "suddenly loud",
+      "suddenly loud, then soft",
+      "suddenly soft"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does subito piano mean?",
+    "a": "suddenly soft",
+    "options": [
+      "suddenly loud",
+      "suddenly loud, then soft",
+      "suddenly soft"
+    ]
+  },
+  {
+    "category": "Music Symbols",
+    "q": "What does sforzando tell a performer to do?",
+    "a": "forcefully accent a note",
+    "options": [
+      "gradually get louder",
+      "forcefully accent a note",
+      "gradually get softer"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is an easy trick to draw a treble clef?",
+    "a": "Draw a long “S” and then part of an “8”",
+    "options": [
+      "Draw a Bass Clef first",
+      "Draw a long line and then an “8”",
+      "Draw a long “S” and then part of an “8”"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is a trick for drawing equal measures?",
+    "a": "Divide the staff in half first",
+    "options": [
+      "Divide the staff in half first",
+      "Start on the left",
+      "Start on the right"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is a quick way to draw the head of a note?",
+    "a": "Draw a dash for the note head",
+    "options": [
+      "Draw a dash for the note head",
+      "Fill in the note head completely",
+      "Draw the mustache first"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is a melody?",
+    "a": "The main singable part of a song",
+    "options": [
+      "The main singable part of a song",
+      "The speed of the beat"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "Can every instrument perform a melody?",
+    "a": "No",
+    "options": [
+      "Yes",
+      "No"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is an important part of most melodies?",
+    "a": "Patterns",
+    "options": [
+      "Rests",
+      "Dynamics",
+      "Patterns"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is harmony?",
+    "a": "Two or more notes performed at the same time",
+    "options": [
+      "Two or more notes performed at the same time",
+      "One note performed by itself"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "True or false, a harmony adds emotion to a melody.",
+    "a": "True",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is one of the most popular forms of harmony?",
+    "a": "A triad",
+    "options": [
+      "A triad",
+      "A measure",
+      "A melody"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is something that has no impact on a melody?",
+    "a": "Your handwriting",
+    "options": [
+      "The bass line",
+      "The harmonies",
+      "Your handwriting"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "True or false, a bass line can perform the melody.",
+    "a": "True",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "How can the bass line affect a melody?",
+    "a": "It can change the emotion of the melody",
+    "options": [
+      "It can change the emotion of the melody",
+      "It cannot affect the melody in any way"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is a chord progression?",
+    "a": "A sequence of different harmonies",
+    "options": [
+      "A sequence of different harmonies",
+      "A sequence of different tempos"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "Where are the main places to include patterns in a melody?",
+    "a": "The rhythm & pitch selection",
+    "options": [
+      "The pitch selections & dynamics",
+      "The rhythm & pitch selection",
+      "The rhythm & time signature"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is something that can improve your melody?",
+    "a": "Adding lyrics",
+    "options": [
+      "Changing the bass line",
+      "Adding harmonies",
+      "Adding lyrics"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is an example of pop music form?",
+    "a": "Verse–Chorus–Verse–Bridge–Chorus",
+    "options": [
+      "Verse–Chorus–Verse–Bridge–Chorus",
+      "Verse–Verse–Verse–Verse"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "In ABA form, what does the second A represent?",
+    "a": "The replay of the first “A” section",
+    "options": [
+      "The Bridge",
+      "The Chorus",
+      "The replay of the first “A” section"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "How does song form help composers?",
+    "a": "It organizes musical ideas",
+    "options": [
+      "It organizes musical ideas",
+      "It determines how loud every note must be"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "How many syllables per note are commonly used when writing lyrics?",
+    "a": "One syllable per note",
+    "options": [
+      "One syllable per note",
+      "Four syllables per note"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is a helpful starting point for lyrics?",
+    "a": "Something that interests or inspires you",
+    "options": [
+      "Something that interests or inspires you",
+      "Choosing words at random without a topic"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What can you use instead of writing original lyrics?",
+    "a": "Public-domain poetry",
+    "options": [
+      "Public-domain poetry",
+      "A recently copyrighted song without permission"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "How can tempo affect a melody?",
+    "a": "It can affect the emotion of the melody",
+    "options": [
+      "It can affect the emotion of the melody",
+      "Tempo has no effect on how a melody feels"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "True or false, percussion is not necessary in a piece of music.",
+    "a": "True",
+    "options": [
+      "True",
+      "False"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is an easy way to experiment with instrumentation?",
+    "a": "Try different instruments with a MIDI file",
+    "options": [
+      "Try different instruments with a MIDI file",
+      "Learn to play every instrument",
+      "Use only one instrument"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "How many instruments should perform in a piece of music?",
+    "a": "As many as you like!",
+    "options": [
+      "1 instrument",
+      "1–10 instruments",
+      "As many as you like!"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is important to keep in mind when selecting instrumentation?",
+    "a": "Performance ranges of instruments",
+    "options": [
+      "How many instruments you are using",
+      "Performance ranges of instruments",
+      "The total number of notes"
+    ]
+  },
+  {
+    "category": "Music Creation",
+    "q": "What is one way to create contrast in your composition?",
+    "a": "Change the dynamics or instrumentation in a new section",
+    "options": [
+      "Change the dynamics or instrumentation in a new section",
+      "Repeat the same melody and chords exactly",
+      "Keep every section the same tempo and volume"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "How is sound created?",
+    "a": "By vibrations",
+    "options": [
+      "By vibrations",
+      "By light waves"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What distinguishes music from sound in this quiz?",
+    "a": "Music contains patterns",
+    "options": [
+      "Music contains patterns",
+      "Music never has a repeating pattern"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Why can’t sound travel through empty space?",
+    "a": "There is no medium for sound waves to travel through",
+    "options": [
+      "There is no medium for sound waves to travel through",
+      "Sound waves do not need any material to travel through"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Who first developed the idea of Solfege?",
+    "a": "Guido de Arezzo",
+    "options": [
+      "Ludwig van Beethoven",
+      "Guido de Arezzo",
+      "Mozart"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What was different about the earliest musical staff created by Guido de Arezzo?",
+    "a": "The staff consisted of 4 lines",
+    "options": [
+      "The staff consisted of 4 lines",
+      "The staff consisted of 5 lines",
+      "The staff contained solfege"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "How did singers learn melodies before notation?",
+    "a": "By listening and singing them back",
+    "options": [
+      "By listening and singing them back",
+      "By reading printed sheet music"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Which style of music was NOT popular during the Medieval period?",
+    "a": "Orchestral music",
+    "options": [
+      "Orchestral music",
+      "Sacred music",
+      "Instrumental music"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What is sacred music?",
+    "a": "Music composed for religious use or worship",
+    "options": [
+      "Music composed for religious use or worship",
+      "Music written only for dancing"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "About how long did the Medieval Period span?",
+    "a": "About 1,000 years",
+    "options": [
+      "About 1,000 years",
+      "About 100 years"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What does the word “renaissance” literally mean?",
+    "a": "Rebirth",
+    "options": [
+      "Remember",
+      "Renown",
+      "Rebirth"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What is polyphonic music?",
+    "a": "Music with multiple simultaneous melodic lines",
+    "options": [
+      "Music with multiple simultaneous melodic lines",
+      "Music with only one melodic line"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What is a chorale?",
+    "a": "A usually harmonized psalm or hymn",
+    "options": [
+      "A usually harmonized psalm or hymn",
+      "A solo drum performance"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Which individual was NOT a popular composer of the Baroque Period?",
+    "a": "Guido de Arezzo",
+    "options": [
+      "Johan Sebastian Bach",
+      "Guido de Arezzo",
+      "Frederick Handel"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What characterized many Baroque melodies?",
+    "a": "Ornamentation",
+    "options": [
+      "Ornamentation",
+      "No decoration or embellishment"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What was one of the most popular instruments of the Baroque Period?",
+    "a": "The harpsichord",
+    "options": [
+      "The trumpet",
+      "The electric guitar",
+      "The harpsichord"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Which individual was NOT a popular composer of the Classical Period?",
+    "a": "Johan Sebastian Bach",
+    "options": [
+      "Ludwig van Beethoven",
+      "Johan Sebastian Bach",
+      "Mozart"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What characterized many Classical-period melodies?",
+    "a": "Memorable melodies",
+    "options": [
+      "Memorable melodies",
+      "Only irregular, unpredictable rhythms"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What musical instrument was NOT featured in the orchestra during the Classical Period?",
+    "a": "The piano",
+    "options": [
+      "The piano",
+      "The clarinet",
+      "The violin"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Which individual was NOT a popular composer of the Romantic Period?",
+    "a": "Vivaldi",
+    "options": [
+      "Chopin",
+      "Tchaikovsky",
+      "Vivaldi"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What important part of history took place during the Romantic Period?",
+    "a": "The Industrial Revolution",
+    "options": [
+      "The invention of the printing press",
+      "The Industrial Revolution",
+      "The invention of the violin"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What is a nocturne?",
+    "a": "A piece inspired by nighttime",
+    "options": [
+      "A piece inspired by nighttime",
+      "A piece inspired by daytime"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What historical book contains some of the earliest pieces of music that were probably sung by groups of people?",
+    "a": "The book of Psalms",
+    "options": [
+      "Chopin’s book of nocturnes",
+      "Mozart’s first piano book",
+      "The book of Psalms"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Out of these options, which style of vocal music developed first?",
+    "a": "Gregorian Chant",
+    "options": [
+      "Polyphonic Music",
+      "Gregorian Chant",
+      "Opera"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "When did the 4 part vocal structure of the choir start to become more popular?",
+    "a": "The late 1400’s",
+    "options": [
+      "The late 1400’s",
+      "The late 1700’s",
+      "The late 1800’s"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What instrument inspired the modern day violin?",
+    "a": "The Viola da Gamba",
+    "options": [
+      "The piano",
+      "The Viola da Gamba",
+      "The flute"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What is chamber music?",
+    "a": "Music for a small ensemble",
+    "options": [
+      "Music for a small ensemble",
+      "Music written only for very large orchestras"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "What is a symphony orchestra?",
+    "a": "An orchestra with the instruments needed to play a symphony",
+    "options": [
+      "An orchestra with the instruments needed to play a symphony",
+      "An orchestra made up only of percussion instruments"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "How did printing affect Renaissance music?",
+    "a": "It made written music more widely available",
+    "options": [
+      "It made written music more widely available",
+      "It made written music harder to obtain"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "Which instrument gradually replaced the viol in chamber music during the 1600s?",
+    "a": "Violin",
+    "options": [
+      "Harpsichord",
+      "Violin",
+      "Flute"
+    ]
+  },
+  {
+    "category": "Music History",
+    "q": "By the late 1600s, what did the term “orchestra” commonly refer to?",
+    "a": "The area in front of the stage where musicians sat",
+    "options": [
+      "A type of symphony for voices",
+      "The conductor’s raised platform",
+      "The area in front of the stage where musicians sat"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual was NOT a popular composer of Classical music as a genre?",
+    "a": "Elvis Presley",
+    "options": [
+      "Ludwig van Beethoven",
+      "Elvis Presley",
+      "Wolfgang Amadeus Mozart"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a defining characteristic of Classical music as a genre?",
+    "a": "Structured forms and memorable melodies",
+    "options": [
+      "Heavy use of electronic instruments",
+      "Structured forms and memorable melodies",
+      "Improvisational style"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is typically featured in Classical music compositions?",
+    "a": "Piano",
+    "options": [
+      "Electric guitar",
+      "Synthesizer",
+      "Piano"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual was NOT a key figure in the development of Blues music?",
+    "a": "Ludwig van Beethoven",
+    "options": [
+      "Robert Johnson",
+      "Ludwig van Beethoven",
+      "B.B. King"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is characteristic of the 12-bar blues structure?",
+    "a": "It follows a specific chord progression over 12 bars",
+    "options": [
+      "It has 16 measures",
+      "It follows a specific chord progression over 12 bars",
+      "It uses a minor scale exclusively"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT typically associated with Blues music?",
+    "a": "The violin",
+    "options": [
+      "The harmonica",
+      "The electric guitar",
+      "The violin"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which musician is NOT associated with the Jazz genre?",
+    "a": "Elvis Presley",
+    "options": [
+      "Louis Armstrong",
+      "Duke Ellington",
+      "Elvis Presley"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a key characteristic of Jazz music?",
+    "a": "Improvisation",
+    "options": [
+      "Simple, repetitive melodies",
+      "Improvisation",
+      "Strict adherence to sheet music"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT commonly found in a Jazz ensemble?",
+    "a": "Harpsichord",
+    "options": [
+      "Saxophone",
+      "Trumpet",
+      "Harpsichord"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual was NOT a key figure in American folk music?",
+    "a": "Ludwig van Beethoven",
+    "options": [
+      "Pete Seeger",
+      "Ludwig van Beethoven",
+      "Woody Guthrie"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What inspired Woody Guthrie’s “This Land Is Your Land”?",
+    "a": "His travels during the Great Depression",
+    "options": [
+      "His travels during the Great Depression",
+      "His experiences traveling in outer space"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is typically NOT associated with folk music?",
+    "a": "Electric guitar",
+    "options": [
+      "Acoustic guitar",
+      "Banjo",
+      "Electric guitar"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual was NOT a key figure in the development of Country music?",
+    "a": "Louis Armstrong",
+    "options": [
+      "Louis Armstrong",
+      "Jimmie Rodgers",
+      "Hank Williams"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a common theme in Country music lyrics?",
+    "a": "Love and heartache",
+    "options": [
+      "Space exploration",
+      "Love and heartache",
+      "Abstract art"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT typically associated with Country music?",
+    "a": "The harpsichord",
+    "options": [
+      "The banjo",
+      "The harpsichord",
+      "The fiddle"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual is NOT associated with R&B/Soul music?",
+    "a": "Johann Sebastian Bach",
+    "options": [
+      "Ray Charles",
+      "Aretha Franklin",
+      "Johann Sebastian Bach"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a characteristic of R&B/Soul music?",
+    "a": "Strong, emotional vocals",
+    "options": [
+      "Simple chord progressions",
+      "Strong, emotional vocals",
+      "Strict classical forms"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT typically associated with R&B/Soul music?",
+    "a": "The sitar",
+    "options": [
+      "The sitar",
+      "The electric guitar",
+      "The piano"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which musician is NOT associated with Rock music?",
+    "a": "Duke Ellington",
+    "options": [
+      "Duke Ellington",
+      "Elvis Presley",
+      "Chuck Berry"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a defining feature of Rock music?",
+    "a": "Strong backbeat and electric guitar riffs",
+    "options": [
+      "Soft, mellow tones",
+      "Strong backbeat and electric guitar riffs",
+      "Gregorian chants"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT commonly used in Rock music?",
+    "a": "Oboe",
+    "options": [
+      "Electric guitar",
+      "Drums",
+      "Oboe"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual is NOT associated with Pop music?",
+    "a": "Woody Guthrie",
+    "options": [
+      "Michael Jackson",
+      "Madonna",
+      "Woody Guthrie"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a common characteristic of Pop music?",
+    "a": "Catchy melodies and repeated choruses",
+    "options": [
+      "Long, improvised solos",
+      "Catchy melodies and repeated choruses",
+      "Heavy use of minor scales"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT typically associated with Pop music?",
+    "a": "Bagpipes",
+    "options": [
+      "Bagpipes",
+      "Keyboards",
+      "Electric guitar"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which individual is NOT associated with Hip-Hop/Rap music?",
+    "a": "Wolfgang Amadeus Mozart",
+    "options": [
+      "Tupac Shakur",
+      "Wolfgang Amadeus Mozart",
+      "DJ Kool Herc"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "What is a defining feature of Hip- Hop/Rap music?",
+    "a": "Rhythmic spoken lyrics",
+    "options": [
+      "Instrumental compositions",
+      "Opera-style singing",
+      "Rhythmic spoken lyrics"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which instrument is NOT typically used in Hip-Hop/Rap music production?",
+    "a": "Harpsichord",
+    "options": [
+      "Harpsichord",
+      "Drum machine",
+      "Turntables"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which composer is best known for the Super Mario Bros. theme?",
+    "a": "Koji Kondo",
+    "options": [
+      "Koji Kondo",
+      "Martin O’Donnell",
+      "Hans Zimmer"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which statement best describes early video game music?",
+    "a": "Created with simple synthesized/chiptune loops due to hardware limits",
+    "options": [
+      "Mostly live orchestral recordings",
+      "Created with simple synthesized/chiptune loops due to hardware limits",
+      "Mostly a cappella vocals"
+    ]
+  },
+  {
+    "category": "Music Genres",
+    "q": "Which composer is associated with the Halo series?",
+    "a": "Martin O’Donnell",
+    "options": [
+      "Martin O’Donnell",
+      "Koji Kondo",
+      "Nobuo Uematsu"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which musical feature is most characteristic of African American spirituals?",
+    "a": "Call & Response",
+    "options": [
+      "Call & Response",
+      "12-tone serialism",
+      "Gregorian Chant"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Spirituals most often rely on which scale?",
+    "a": "Pentatonic Scale",
+    "options": [
+      "Chromatic Scale",
+      "Whole-tone Scale",
+      "Pentatonic Scale"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "How did spirituals influence Latin, later American music?",
+    "a": "They laid the groundwork for Gospel, Blues, and Jazz",
+    "options": [
+      "They laid the groundwork for Gospel, Blues, and Jazz",
+      "They introduced synthesizers to early American music",
+      "They ended the tradition of group singing"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which instrument is most closely identified with traditional gospel music?",
+    "a": "Hammond Organ",
+    "options": [
+      "Hammond Organ",
+      "Sitar",
+      "Panpipes"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What rhythmic trait gives gospel music its characteristic drive?",
+    "a": "Syncopated emphasis on beats 2 & 4",
+    "options": [
+      "Strict beat-1 down-strokes only",
+      "Syncopated emphasis on beats 2 & 4",
+      "Completely free-time chanting with no pulse"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "How did gospel music influence later popular genres?",
+    "a": "It helped inspire Soul and R&B artists like Aretha Franklin",
+    "options": [
+      "It introduced electronic dance beats in Techno clubs of the 1800’s",
+      "It eliminated all improvisation in Jazz",
+      "It helped inspire Soul and R&B artists like Aretha Franklin"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which drum is the primary hand- played instrument in many West African ensembles?",
+    "a": "Djembe",
+    "options": [
+      "Djembe",
+      "Bodhran",
+      "Taiko"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What term describes the layering of several different rhythms at once?",
+    "a": "Polyrhythm",
+    "options": [
+      "Serialism",
+      "Monophony",
+      "Polyrhythm"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "In West African drumming, what is the main purpose of the timeline bell pattern?",
+    "a": "It provides a constant rhythmic anchor",
+    "options": [
+      "It provides a constant rhythmic anchor",
+      "It plays the main melody of the song",
+      "It signals dancers to leave the circle"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which instrument was originally invented from recycled oil barrels?",
+    "a": "Steel Pan",
+    "options": [
+      "Steel Pan",
+      "Sitar",
+      "Violin"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What rhythmic accents help create reggae’s swaying feel?",
+    "a": "Off-beat accents on beats 2 and 4",
+    "options": [
+      "Off-beat accents on beats 2 and 4",
+      "Accents only on the first beat of each measure"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which annual festival is most closely linked with calypso and soca music?",
+    "a": "Trinidad Carnival",
+    "options": [
+      "Holi Festival",
+      "Oktoberfest",
+      "Trinidad Carnival"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which rhythmic pattern is the cornerstone of salsa music?",
+    "a": "Clave",
+    "options": [
+      "One-drop",
+      "Waltz ostinato",
+      "Clave"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which Brazilian festival features samba music?",
+    "a": "Carnival in Rio de Janeiro",
+    "options": [
+      "Carnival in Rio de Janeiro",
+      "Oktoberfest",
+      "Diwali"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "In a traditional mariachi ensemble, what role does the guitarrón play?",
+    "a": "Provides deep bass foundation",
+    "options": [
+      "Acts as a hand percussion shaker",
+      "Plays high-pitched melodies",
+      "Provides deep bass foundation"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What instrument is central to a plain-style powwow song?",
+    "a": "A large communal drum",
+    "options": [
+      "A large communal drum",
+      "A pipe organ"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "In Native American music, what are vocables?",
+    "a": "Meaning-free syllables that are sung",
+    "options": [
+      "Electronic effects from a synthesizer",
+      "Meaning-free syllables that are sung",
+      "Secret English codes describing scape routes"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What is a gathering where tribes share songs, dance, and culture?",
+    "a": "Powwow",
+    "options": [
+      "Carnival",
+      "Oktoberfest",
+      "Powwow"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "In Indian classical music, what is raga?",
+    "a": "A melodic framework with specific rules",
+    "options": [
+      "A chromatic scale used in Jazz",
+      "A brand of Indian drumsticks",
+      "A melodic framework with specific rules"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What is the name of the rhythmic cycle in classical Indian music?",
+    "a": "Tāla",
+    "options": [
+      "Tāla",
+      "Fugue",
+      "Verse-Chorus"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What does the tanpura provide?",
+    "a": "A continuous drone pitch",
+    "options": [
+      "A continuous drone pitch",
+      "A repeating drum solo"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which scale forms the melodic sound of most traditional Chinese music?",
+    "a": "Pentatonic",
+    "options": [
+      "Major Scale",
+      "Whole-Tone",
+      "Pentatonic"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which of the following is not a commonly used instrument in Chinese traditional music?",
+    "a": "Sitar",
+    "options": [
+      "Erhu",
+      "Guzheng",
+      "Sitar"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What is the bamboo flute with a buzzing membrane called?",
+    "a": "Dizi",
+    "options": [
+      "Shakuhachi",
+      "Dizi",
+      "Panpipe"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What are the large barrel drums featured in Japanese festivals called?",
+    "a": "Taiko",
+    "options": [
+      "Taiko",
+      "Djembe",
+      "Bodhrán"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "In Japanese culture, what is the concept of “ma”?",
+    "a": "Purposeful silence or space within the music",
+    "options": [
+      "A minor pentatonic scale",
+      "A fast virtuosic ending section",
+      "Purposeful silence or space within the music"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "Which string instrument often uses movable bridges and pitch bends?",
+    "a": "Koto",
+    "options": [
+      "Guitar",
+      "Koto",
+      "Harp"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "What is the name of the traditional Irish frame drum?",
+    "a": "Bodhrán",
+    "options": [
+      "Conga",
+      "Taiko",
+      "Bodhrán"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "A jig is most commonly counted in which meter?",
+    "a": "6/8",
+    "options": [
+      "6/8",
+      "3/4",
+      "5/4"
+    ]
+  },
+  {
+    "category": "World Music",
+    "q": "How are most Celtic tunes traditionally taught and shared?",
+    "a": "By ear in informal gatherings",
+    "options": [
+      "Through orchestral scores",
+      "By ear in informal gatherings",
+      "With electronic backing tracks"
+    ]
+  }
+];
 const cats=[...new Set(CARDS.map(c=>c.category))],storeKey="music-study-studio-v2";
 let status={};try{status=JSON.parse(localStorage.getItem(storeKey)||"{}")}catch(e){}
 const $=id=>document.getElementById(id);
@@ -10,15 +1879,18 @@ function save(){try{localStorage.setItem(storeKey,JSON.stringify(status))}catch(
 function key(c){return c.category+"|"+c.q}
 function current(){return CARDS[order[index]]}
 function rebuild(randomize=false){order=CARDS.map((c,i)=>i).filter(i=>(category==="All topics"||CARDS[i].category===category)&&(!missed||status[key(CARDS[i])]!=="known"));if(randomize)order.sort(()=>Math.random()-.5);index=0;render()}
-function pickOptions(c){let pool=[...new Set([...(c.options||[]),...CARDS.filter(x=>x.category===c.category&&x.a!==c.a).map(x=>x.a)].filter(x=>x&&x!==c.a))];pool.sort(()=>Math.random()-.5);return [c.a,...pool.slice(0,3)].sort(()=>Math.random()-.5)}
-function render(){let n=order.length;$("study").hidden=!n;$("empty").style.display=n?"none":"block";$("count").textContent=n?`Card ${index+1} of ${n}`:"0 cards";let scoped=CARDS.filter(c=>category==="All topics"||c.category===category),known=scoped.filter(c=>status[key(c)]==="known").length;$("progress").textContent=`${known} / ${scoped.length} mastered`;$("fill").style.width=(100*known/scoped.length)+"%";if(!n)return;let c=current();flipped=false;answered=false;$("card").classList.remove("answer");$("card").hidden=mode==="quiz";$("choices").hidden=mode!=="quiz";$("cardhint").textContent="QUESTION • Tap to flip";$("cardtext").textContent=c.q;$("feedback").textContent="";$("know").hidden=mode==="quiz";$("again").hidden=mode==="quiz";$("prev").disabled=index===0;$("next").textContent=index===n-1?"Start over ↻":"Next →";if(mode==="quiz"){options=pickOptions(c);$("choices").replaceChildren();let h=document.createElement("h2");h.textContent=c.q;h.style.fontSize="21px";$("choices").append(h);options.forEach((opt,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=String.fromCharCode(65+i)+". "+opt;b.onclick=()=>{if(answered)return;answered=true;let ok=opt===c.a;status[key(c)]=ok?"known":"missed";save();$("feedback").textContent=ok?"✓ Correct!":"Not quite. Correct answer: "+c.a;[...$("choices").querySelectorAll(".choice")].forEach(x=>{if(x.textContent.slice(3)===c.a)x.classList.add("correct");else if(x===b)x.classList.add("wrong")});updateProgress()};$("choices").append(b)})}}
-function updateProgress(){let scoped=CARDS.filter(c=>category==="All topics"||c.category===category);let k=scoped.filter(c=>status[key(c)]==="known").length;$("progress").textContent=`${k} / ${scoped.length} mastered`;$("fill").style.width=(100*k/scoped.length)+"%"}
+function pickOptions(c){
+  // Only use the answer choices written for THIS question; never borrow from other cards.
+  return [...c.options].sort(()=>Math.random()-.5);
+}
+function render(){let n=order.length;$("study").hidden=!n;$("empty").style.display=n?"none":"block";$("count").textContent=n?`Card ${index+1} of ${n}`:"0 cards";let scoped=CARDS.filter(c=>(category==="All topics"||c.category===category)),known=scoped.filter(c=>status[key(c)]==="known").length;$("progress").textContent=`${known} / ${scoped.length} mastered`;$("fill").style.width=(100*known/scoped.length)+"%";if(!n)return;let c=current();flipped=false;answered=false;$("card").classList.remove("answer");$("card").hidden=mode==="quiz";$("choices").hidden=mode!=="quiz";$("cardhint").textContent="QUESTION • Tap to flip";$("cardtext").textContent=c.q;$("feedback").textContent="";$("know").hidden=mode==="quiz";$("again").hidden=mode==="quiz";$("prev").disabled=index===0;$("next").textContent=index===n-1?"Start over ↻":"Next →";if(mode==="quiz"){options=pickOptions(c);$("choices").replaceChildren();let h=document.createElement("h2");h.textContent=c.q;h.style.fontSize="21px";$("choices").append(h);options.forEach((opt,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=String.fromCharCode(65+i)+". "+opt;b.onclick=()=>{if(answered)return;answered=true;let ok=opt===c.a;status[key(c)]=ok?"known":"missed";save();$("feedback").textContent=ok?"✓ Correct!":"Not quite. Correct answer: "+c.a;[...$("choices").querySelectorAll(".choice")].forEach(x=>{if(x.textContent.slice(3)===c.a)x.classList.add("correct");else if(x===b)x.classList.add("wrong")});updateProgress()};$("choices").append(b)})}}
+function updateProgress(){let scoped=CARDS.filter(c=>(category==="All topics"||c.category===category));let k=scoped.filter(c=>status[key(c)]==="known").length;$("progress").textContent=`${k} / ${scoped.length} mastered`;$("fill").style.width=(100*k/scoped.length)+"%"}
 function rate(v){if(!order.length)return;status[key(current())]=v;save();updateProgress();next()}
 function next(){if(!order.length)return;if(index===order.length-1){index=0}else index++;render()}
 $("card").onclick=()=>{if(mode!=="flash"||!order.length)return;flipped=!flipped;$("card").classList.toggle("answer",flipped);$("cardhint").textContent=flipped?"ANSWER • Tap to see question":"QUESTION • Tap to flip";$("cardtext").textContent=flipped?current().a:current().q};
 $("category").innerHTML=["All topics",...cats].map(c=>`<option>${c}</option>`).join("");$("category").onchange=e=>{category=e.target.value;rebuild()};
-$("flash").onclick=()=>{mode="flash";$("flash").classList.add("active");$("quiz").classList.remove("active");render()};
-$("quiz").onclick=()=>{mode="quiz";$("quiz").classList.add("active");$("flash").classList.remove("active");render()};
+$("flash").onclick=()=>{mode="flash";$("flash").classList.add("active");$("quiz").classList.remove("active");rebuild()};
+$("quiz").onclick=()=>{mode="quiz";$("quiz").classList.add("active");$("flash").classList.remove("active");rebuild()};
 $("shuffle").onclick=()=>rebuild(true);$("missed").onclick=()=>{missed=!missed;$("missed").classList.toggle("active",missed);rebuild()};
 $("reset").onclick=()=>{if(!confirm("Clear saved progress for this topic?"))return;CARDS.filter(c=>category==="All topics"||c.category===category).forEach(c=>delete status[key(c)]);save();rebuild()};
 $("prev").onclick=()=>{if(index>0){index--;render()}};$("next").onclick=next;$("know").onclick=()=>rate("known");$("again").onclick=()=>rate("missed");$("all").onclick=()=>{missed=false;$("missed").classList.remove("active");rebuild()};
